@@ -92,6 +92,9 @@ if (app.Configuration.GetValue("Database:ApplyMigrations", true))
                 .ImportProjectsIfEmptyAsync(path, CancellationToken.None);
         }
     }
+
+    await scope.ServiceProvider.GetRequiredService<IProjetService>()
+        .NormalizeStartedStatusesAsync(CancellationToken.None);
 }
 
 await app.RunAsync();

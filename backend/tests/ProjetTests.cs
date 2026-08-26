@@ -49,4 +49,26 @@ public sealed class ProjetTests : IClassFixture<ApiWebApplicationFactory>
         Assert.True(dashboard.ProjetsEnCours >= 1);
         Assert.Contains(dashboard.ProjetsParDomaine, item => item.Nom == "INFRA RESEAU & SYSTÈME");
     }
+
+    [Fact]
+    public async Task StartingProjectCannotRemainPlanned()
+    {
+        var response = await client.PostAsJsonAsync("/api/projets", new
+        {
+            domaineProjetId = 1,
+            nom = "Projet demarre de test",
+            tauxAvancement = 0m,
+            statutProjetId = 1,
+            etapes = new[]
+            {
+                new { nom = "Etape demarree", tauxAvancement = 0m, statutEtapeId = 2, ordre = 0 }
+            }
+        });
+
+        response.EnsureSuccessStatusCode();
+        var project = await response.Content.ReadFromJsonAsync<ProjetDto>();
+
+        Assert.NotNull(project);
+        Assert.Equal("En cours", project!.StatutProjet.Nom);
+    }
 }

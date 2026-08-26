@@ -9,4 +9,5 @@ public interface IProjetService
     Task<ProjetDto?> GetByIdAsync(int id, CancellationToken cancellationToken);
     Task<ProjetDto> CreateAsync(ProjetWriteDto input, CancellationToken cancellationToken);
     Task<ProjetDto?> UpdateAsync(int id, ProjetWriteDto input, CancellationToken cancellationToken);
+    Task NormalizeStartedStatusesAsync(CancellationToken cancellationToken);
 }

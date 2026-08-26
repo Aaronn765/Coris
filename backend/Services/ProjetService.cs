@@ -44,6 +44,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
     {
         ValidateDates(input);
         await EnsureReferencesExistAsync(input, cancellationToken);
+        var statusId = await NormalizeStatusIdAsync(input, cancellationToken);
 
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
         var year = (input.DateDebut ?? input.DateEcheance ?? DateTime.UtcNow).Year;
@@ -59,7 +60,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
             sequence.LastValue++;
         }
 
-        var project = ToEntity(input);
+        var project = ToEntity(input, statusId);
         project.Numero = $"PRJ-{year:D4}-{sequence.LastValue:D4}";
         db.Projets.Add(project);
 
@@ -73,6 +74,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
     {
         ValidateDates(input);
         await EnsureReferencesExistAsync(input, cancellationToken);
+        var statusId = await NormalizeStatusIdAsync(input, cancellationToken);
 
         var project = await db.Projets
             .Include(x => x.ProjetResponsables)
@@ -81,7 +83,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
 
         if (project is null) return null;
 
-        UpdateEntity(project, input);
+        UpdateEntity(project, input, statusId);
         db.ProjetResponsables.RemoveRange(project.ProjetResponsables);
         db.EtapesProjet.RemoveRange(project.Etapes);
         AddResponsibilitiesAndSteps(project, input);
@@ -89,6 +91,38 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
 
         await db.SaveChangesAsync(cancellationToken);
         return await GetByIdAsync(id, cancellationToken);
+    }
+
+    public async Task NormalizeStartedStatusesAsync(CancellationToken cancellationToken)
+    {
+        var statuses = await db.StatutsProjet
+            .AsNoTracking()
+            .Where(x => x.Actif)
+            .ToListAsync(cancellationToken);
+        var planned = statuses.FirstOrDefault(x => IsPlannedStatus(x.Nom));
+        var inProgress = statuses.FirstOrDefault(x => IsInProgressStatus(x.Nom));
+
+        if (planned is null || inProgress is null || planned.Id == inProgress.Id)
+            return;
+
+        var projects = await db.Projets
+            .Where(x => x.StatutProjetId == planned.Id)
+            .Include(x => x.Etapes)
+                .ThenInclude(x => x.StatutEtape)
+            .ToListAsync(cancellationToken);
+
+        var today = DateTime.UtcNow.Date;
+        var changed = false;
+        foreach (var project in projects)
+        {
+            if (!HasStarted(project, today)) continue;
+            project.StatutProjetId = inProgress.Id;
+            project.UpdatedAt = DateTime.UtcNow;
+            changed = true;
+        }
+
+        if (changed)
+            await db.SaveChangesAsync(cancellationToken);
     }
 
     private IQueryable<Projet> ApplyFilters(IQueryable<Projet> query, ProjetQueryParameters parameters)
@@ -179,7 +213,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
             throw new ValidationException("Le statut d'une étape sélectionnée est introuvable ou inactif.");
     }
 
-    private static Projet ToEntity(ProjetWriteDto input)
+    private static Projet ToEntity(ProjetWriteDto input, int statusId)
     {
         var project = new Projet
         {
@@ -190,7 +224,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
             DateDebut = input.DateDebut,
             DateFin = input.DateFin,
             DateEcheance = input.DateEcheance,
-            StatutProjetId = input.StatutProjetId,
+            StatutProjetId = statusId,
             Support = CleanOptional(input.Support),
             ActeursMetiers = CleanOptional(input.ActeursMetiers),
             Contraintes = CleanOptional(input.Contraintes),
@@ -203,7 +237,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
         return project;
     }
 
-    private static void UpdateEntity(Projet project, ProjetWriteDto input)
+    private static void UpdateEntity(Projet project, ProjetWriteDto input, int statusId)
     {
         project.DomaineProjetId = input.DomaineProjetId;
         project.Nom = input.Nom.Trim();
@@ -212,7 +246,7 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
         project.DateDebut = input.DateDebut;
         project.DateFin = input.DateFin;
         project.DateEcheance = input.DateEcheance;
-        project.StatutProjetId = input.StatutProjetId;
+        project.StatutProjetId = statusId;
         project.Support = CleanOptional(input.Support);
         project.ActeursMetiers = CleanOptional(input.ActeursMetiers);
         project.Contraintes = CleanOptional(input.Contraintes);
@@ -261,6 +295,65 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
         if (parameters.TauxMin.HasValue && parameters.TauxMax.HasValue && parameters.TauxMin.Value > parameters.TauxMax.Value)
             throw new ValidationException("Le taux minimal doit être inférieur ou égal au taux maximal.");
     }
+
+    private async Task<int> NormalizeStatusIdAsync(ProjetWriteDto input, CancellationToken cancellationToken)
+    {
+        var selectedStatus = await db.StatutsProjet
+            .AsNoTracking()
+            .FirstAsync(x => x.Id == input.StatutProjetId, cancellationToken);
+
+        if (!IsPlannedStatus(selectedStatus.Nom) || !await HasStartedAsync(input, cancellationToken))
+            return selectedStatus.Id;
+
+        var inProgressId = (await db.StatutsProjet
+            .AsNoTracking()
+            .Where(x => x.Actif)
+            .ToListAsync(cancellationToken))
+            .FirstOrDefault(x => IsInProgressStatus(x.Nom))?.Id ?? 0;
+
+        return inProgressId > 0 ? inProgressId : selectedStatus.Id;
+    }
+
+    private async Task<bool> HasStartedAsync(ProjetWriteDto input, CancellationToken cancellationToken)
+    {
+        var today = DateTime.UtcNow.Date;
+        if (input.TauxAvancement > 0 || HasStartedDate(input.DateDebut, today))
+            return true;
+
+        var statusIds = (input.Etapes ?? []).Select(x => x.StatutEtapeId).Distinct().ToList();
+        var statuses = await db.StatutsEtape
+            .AsNoTracking()
+            .Where(x => statusIds.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id, x => x.Nom, cancellationToken);
+
+        return (input.Etapes ?? []).Any(step =>
+            step.TauxAvancement > 0 ||
+            HasStartedDate(step.DateDebut, today) ||
+            (statuses.TryGetValue(step.StatutEtapeId, out var name) && IsStartedStepStatus(name)));
+    }
+
+    private static bool HasStarted(Projet project, DateTime today) =>
+        project.TauxAvancement > 0 ||
+        HasStartedDate(project.DateDebut, today) ||
+        project.Etapes.Any(step =>
+            step.TauxAvancement > 0 ||
+            HasStartedDate(step.DateDebut, today) ||
+            IsStartedStepStatus(step.StatutEtape.Nom));
+
+    private static bool HasStartedDate(DateTime? date, DateTime today) => date.HasValue && date.Value.Date <= today;
+
+    private static bool IsStartedStepStatus(string? value)
+    {
+        var normalized = Normalize(value);
+        return !string.IsNullOrWhiteSpace(normalized)
+            && !normalized.Contains("non")
+            && !normalized.Contains("planif")
+            && !normalized.Contains("a faire");
+    }
+
+    private static bool IsPlannedStatus(string? value) => Normalize(value).Contains("planif");
+
+    private static bool IsInProgressStatus(string? value) => Normalize(value).Contains("en cours");
 
     private static ProjetDto ToDto(Projet project) => new()
     {
@@ -315,6 +408,13 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
     };
 
     private static string? CleanOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string Normalize(string? value) => string.IsNullOrWhiteSpace(value)
+        ? string.Empty
+        : new string(value.Trim().Normalize(System.Text.NormalizationForm.FormD)
+            .Where(ch => System.Globalization.CharUnicodeInfo.GetUnicodeCategory(ch) != System.Globalization.UnicodeCategory.NonSpacingMark)
+            .Select(char.ToLowerInvariant)
+            .ToArray());
 
     private static string EscapeLikePattern(string value) => value
         .Replace("[", "[[]", StringComparison.Ordinal)
