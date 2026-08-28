@@ -26,6 +26,7 @@ frontend/.git.before-root/
 *.userprefs
 .DS_Store
 Thumbs.db
+*.code-workspace
 
 # Logs
 *.log

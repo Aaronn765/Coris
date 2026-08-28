@@ -47,6 +47,7 @@
   --color-coris-blue-soft: var(--coris-blue-soft);
   --color-coris-red: var(--coris-red);
   --color-coris-red-soft: var(--coris-red-soft);
+  --color-coris-red-softer: var(--coris-red-softer);
   --color-coris-navy: var(--coris-navy);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -62,8 +63,9 @@
   --coris-navy: #082d6f;
   --coris-red: #e31b2d;
   --coris-blue-soft: #edf3ff;
-  --coris-red-soft: #fff0f2;
-  --background: #f5f7fb;
+  --coris-red-soft: #ffffff;
+  --coris-red-softer: #ffffff;
+  --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -71,11 +73,11 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: var(--coris-blue);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 250);
+  --secondary: oklch(0.98 0 0);
   --secondary-foreground: oklch(0.45 0.15 260);
-  --muted: oklch(0.97 0 250);
-  --muted-foreground: oklch(0.556 0 250);
-  --accent: oklch(0.97 0 250);
+  --muted: oklch(0.98 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.98 0 0);
   --accent-foreground: oklch(0.45 0.15 260);
   --destructive: var(--coris-red);
   --border: oklch(0.922 0 250);
@@ -105,16 +107,13 @@
 
 @layer base {
   html {
-    background: #f5f7fb;
+    background: #ffffff;
   }
 
   body {
     min-width: 320px;
     overflow-x: hidden;
-    background:
-      radial-gradient(circle at 92% -8%, rgba(18, 63, 145, 0.08), transparent 30rem),
-      radial-gradient(circle at 4% 48%, rgba(227, 27, 45, 0.035), transparent 24rem),
-      #f5f7fb;
+    background: #ffffff;
   }
 }
 
@@ -130,6 +129,7 @@
 
   .bg-coris-blue-soft { background-color: var(--coris-blue-soft); }
   .bg-coris-red-soft { background-color: var(--coris-red-soft); }
+  .bg-coris-red-softer { background-color: var(--coris-red-softer); }
 
   .coris-hero-orb {
     position: absolute;
@@ -174,7 +174,7 @@
     background: currentColor;
   }
 
-  .coris-badge-danger { color: #c51d38; background: #fff0f2; }
+  .coris-badge-danger { color: #b81828; background: #ffffff; border: 1px solid #f3d4d8; }
   .coris-badge-warning { color: #a86d05; background: #fff8df; }
   .coris-badge-info { color: #2766a9; background: #edf5ff; }
   .coris-badge-success { color: #16815a; background: #eafaf3; }

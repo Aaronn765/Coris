@@ -40,6 +40,20 @@ public sealed class ProjetService(AppDbContext db) : IProjetService
         return project is null ? null : ToDto(project);
     }
 
+    public async Task<IReadOnlyList<ProjetDto>> GetForExportAsync(
+        ProjetQueryParameters parameters,
+        CancellationToken cancellationToken)
+    {
+        parameters.Normalize();
+        ValidateQueryParameters(parameters);
+
+        var query = ApplyFilters(db.Projets.AsNoTracking(), parameters);
+        var projects = await IncludeDetails(ApplyOrdering(query, parameters))
+            .ToListAsync(cancellationToken);
+
+        return projects.Select(ToDto).ToList();
+    }
+
     public async Task<ProjetDto> CreateAsync(ProjetWriteDto input, CancellationToken cancellationToken)
     {
         ValidateDates(input);

@@ -185,10 +185,10 @@ export default function IncidentsPage() {
         </div>
       </header>
 
-      {error && <div role="alert" className="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><span>{error}</span><button type="button" aria-label="Fermer" onClick={() => setError(null)}><X className="h-4 w-4" /></button></div>}
+      {error && <div role="alert" className="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm text-red-700"><span>{error}</span><button type="button" aria-label="Fermer" onClick={() => setError(null)}><X className="h-4 w-4" /></button></div>}
 
       <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_45px_rgba(13,55,122,0.06)] sm:rounded-[1.5rem]">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-blue-50/70 to-white px-4 py-4 sm:px-6">
+        <div className="border-b border-slate-100 bg-white px-4 py-4 sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-coris-blue text-white shadow-lg shadow-blue-900/20"><SlidersHorizontal className="h-5 w-5" /></div>
@@ -214,7 +214,7 @@ export default function IncidentsPage() {
           <FilterSelect label="Responsable" value={query.responsableId} options={references.responsables} placeholder="Tous les responsables" onChange={(value) => setReferenceFilter("responsableId", value)} />
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 px-4 py-3 sm:px-6">
-          {activeFilterCount > 0 && <Button type="button" variant="ghost" onClick={clearFilters} className="h-9 rounded-xl px-3 text-coris-red hover:bg-red-50 hover:text-coris-red"><RotateCcw className="mr-2 h-3.5 w-3.5" /> Réinitialiser</Button>}
+          {activeFilterCount > 0 && <Button type="button" variant="ghost" onClick={clearFilters} className="h-9 rounded-xl px-3 text-coris-red hover:bg-white hover:text-coris-red"><RotateCcw className="mr-2 h-3.5 w-3.5" /> Réinitialiser</Button>}
         </div>
       </section>
 

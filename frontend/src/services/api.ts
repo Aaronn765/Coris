@@ -259,6 +259,12 @@ export const apiService = {
   getProjetsPage: (params: ProjetQuery = {}): Promise<PagedResult<ProjetWithDetails>> =>
     request<PagedResult<ProjetWithDetails>>(`/projets${toQueryString(params)}`),
 
+  exportProjets: async (params: ProjetQuery = {}): Promise<Blob> => {
+    const response = await fetch(`${API_URL}/projets/export${toQueryString(params)}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Erreur d'export (${response.status})`);
+    return response.blob();
+  },
+
   getProjets: async (params: ProjetQuery = {}): Promise<ProjetWithDetails[]> =>
     (await apiService.getProjetsPage({ page: 1, pageSize: 100, ...params })).items,
 
@@ -273,6 +279,12 @@ export const apiService = {
 
   updateProjet: (id: number, project: ProjetWritePayload): Promise<ProjetWithDetails | null> =>
     request<ProjetWithDetails>(`/projets/${id}`, { method: "PUT", body: JSON.stringify(project) }),
+
+  exportProjetPdf: async (id: number): Promise<Blob> => {
+    const response = await fetch(`${API_URL}/projets/${id}/export`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Erreur d'export PDF (${response.status})`);
+    return response.blob();
+  },
 
   getProjectDashboardStats: (): Promise<ProjectDashboardStats> =>
     request<ProjectDashboardStats>("/dashboard/projets"),

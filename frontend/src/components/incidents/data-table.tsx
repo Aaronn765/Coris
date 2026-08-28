@@ -84,7 +84,7 @@ export function DataTable<TData, TValue>({ columns, data, loading = false, serve
       )}
       <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_18px_50px_rgba(13,55,122,0.07)] sm:rounded-2xl">
         <Table className="table-fixed">
-          <TableHeader className="bg-slate-50/90">
+          <TableHeader className="bg-white">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-slate-200 hover:bg-transparent">
                 {headerGroup.headers.map((header) => {

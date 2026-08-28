@@ -40,8 +40,8 @@ export const AppLayout: FC<{ children: ReactNode }> = ({ children }) => {
         </nav>
       </aside>
 
-      <main className="flex min-h-screen min-w-0 flex-1 flex-col">
-        <div className="min-w-0 flex-1 overflow-auto px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pt-7 md:pb-7">{children}</div>
+      <main className="flex min-h-screen min-w-0 flex-1 flex-col bg-white">
+        <div className="min-w-0 flex-1 overflow-auto bg-white px-4 pb-24 pt-5 sm:px-6 lg:px-8 lg:pt-7 md:pb-7">{children}</div>
       </main>
 
       <nav aria-label="Navigation mobile" className="fixed inset-x-0 bottom-0 z-50 flex h-[4.5rem] border-t border-slate-200 bg-white/95 px-2 shadow-[0_-8px_28px_rgba(8,45,111,0.1)] backdrop-blur-xl md:hidden">

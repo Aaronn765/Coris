@@ -22,6 +22,30 @@ public sealed class ProjetsController(IProjetService projets) : ControllerBase
         return project is null ? NotFound() : Ok(project);
     }
 
+    [HttpGet("export")]
+    public async Task<IActionResult> Export(
+        [FromQuery] ProjetQueryParameters parameters,
+        CancellationToken cancellationToken)
+    {
+        var projects = await projets.GetForExportAsync(parameters, cancellationToken);
+        return File(
+            ProjetExcelDocument.Build(projects),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"projets-{DateTime.UtcNow:yyyyMMddHHmmss}.xlsx");
+    }
+
+    [HttpGet("{id:int}/export")]
+    public async Task<IActionResult> ExportPdf(int id, CancellationToken cancellationToken)
+    {
+        var project = await projets.GetByIdAsync(id, cancellationToken);
+        if (project is null) return NotFound();
+
+        return File(
+            ProjetPdfDocument.Build(project),
+            "application/pdf",
+            $"{project.Numero}-fiche.pdf");
+    }
+
     [HttpPost]
     public async Task<ActionResult<ProjetDto>> Create(ProjetWriteDto input, CancellationToken cancellationToken)
     {

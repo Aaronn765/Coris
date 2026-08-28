@@ -165,11 +165,11 @@ export default function Dashboard() {
     { label: "Total incidents", value: stats.totalIncidents, icon: Layers3, color: "bg-coris-blue-soft text-coris-blue", accent: "bg-coris-blue" },
     { label: "En cours", value: stats.incidentsEnCours, icon: Clock3, color: "bg-amber-50 text-amber-600", accent: "bg-amber-500" },
     { label: "Clotures", value: stats.incidentsClotures, icon: CheckCircle2, color: "bg-emerald-50 text-emerald-600", accent: "bg-emerald-500" },
-    { label: "Critiques / forts", value: criticCount, icon: ShieldAlert, color: "bg-red-50 text-coris-red", accent: "bg-coris-red" },
+    { label: "Critiques / forts", value: criticCount, icon: ShieldAlert, color: "bg-white text-coris-red", accent: "bg-coris-red" },
   ];
 
   if (loading) return <div className="space-y-6"><div className="h-12 animate-pulse rounded-xl bg-coris-blue/10" /><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="h-32 animate-pulse rounded-2xl bg-white shadow-sm" />)}</div></div>;
-  if (error) return <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
+  if (error) return <div role="alert" className="rounded-2xl border border-red-200 bg-white p-4 text-sm text-red-700">{error}</div>;
 
   return (
     <div className="animate-fade-up space-y-4 sm:space-y-6">
@@ -181,8 +181,19 @@ export default function Dashboard() {
         <Link href={dashboardTab === "incidents" ? "/incidents" : "/projets"} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-coris-blue px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition-transform hover:-translate-y-0.5 hover:bg-coris-navy sm:w-fit">Voir les {dashboardTab === "incidents" ? "incidents" : "projets"} <ArrowUpRight className="h-4 w-4" /></Link>
       </header>
 
-      <div role="tablist" aria-label="Module du tableau de bord" className="grid grid-cols-2 rounded-xl bg-slate-100 p-1 text-xs font-bold text-slate-500 sm:w-fit sm:min-w-[320px]">
-        {([['incidents', 'Incidents'], ['projets', 'Projets']] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={dashboardTab === id} onClick={() => setDashboardTab(id)} className={`h-10 rounded-lg px-5 transition-all ${dashboardTab === id ? "bg-white text-coris-blue shadow-sm" : "hover:text-slate-800"}`}><span className="inline-flex items-center gap-2">{id === "projets" && <FolderKanban className="h-4 w-4" />}{label}</span></button>)}
+      <div role="tablist" aria-label="Module du tableau de bord" className="grid grid-cols-2 rounded-xl bg-coris-blue p-1 text-xs font-bold shadow-md shadow-blue-900/20 sm:w-fit sm:min-w-[320px]">
+        {([['incidents', 'Incidents'], ['projets', 'Projets']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={dashboardTab === id}
+            onClick={() => setDashboardTab(id)}
+            className={`h-10 rounded-lg px-5 transition-all ${dashboardTab === id ? "bg-coris-navy text-white shadow-sm" : "text-white/90 hover:bg-white/10 hover:text-white"}`}
+          >
+            <span className="inline-flex items-center gap-2">{id === "projets" && <FolderKanban className="h-4 w-4" />}{label}</span>
+          </button>
+        ))}
       </div>
 
       {dashboardTab === "projets" ? <ProjectDashboardView stats={projectStats} recentProjects={recentProjects} /> : <>
@@ -230,7 +241,7 @@ export default function Dashboard() {
           <div className="mb-5 flex flex-col gap-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-coris-red-soft text-coris-red"><BarChart3 className="h-5 w-5" /></div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-coris-red"><BarChart3 className="h-5 w-5" /></div>
                 <div className="min-w-0">
                   <h2 className="text-lg font-bold text-slate-800 sm:text-xl">Analyse des incidents</h2>
                   <p className="mt-1 text-xs font-semibold text-slate-400">{selectedYear ? `${yearTotal} incident${yearTotal > 1 ? "s" : ""} en ${selectedYear}` : "Aucune annee disponible"}</p>

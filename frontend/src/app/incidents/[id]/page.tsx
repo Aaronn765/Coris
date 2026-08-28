@@ -36,7 +36,7 @@ export default function EditIncidentPage({ params }: { params: Promise<{ id: str
   }, [id]);
 
   if (loading) return <div className="space-y-5"><div className="h-44 animate-pulse rounded-xl bg-coris-blue/10 sm:rounded-[2rem]" /><div className="h-96 animate-pulse rounded-xl bg-white sm:rounded-[1.5rem]" /></div>;
-  if (!incident) return <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">Incident introuvable.</div>;
+  if (!incident) return <div className="rounded-2xl border border-red-200 bg-white p-5 text-red-700">Incident introuvable.</div>;
 
   const summary = [
     { label: "Statut", value: incident.statut?.nom || "—", icon: Layers3, badge: statusClass(incident.statut?.nom || "") },
