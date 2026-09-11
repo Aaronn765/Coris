@@ -49,7 +49,8 @@ if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger
     app.UseSwaggerUI();
 }
 
-if (!app.Environment.IsEnvironment("Testing"))
+if (!app.Environment.IsEnvironment("Testing")
+    && app.Configuration.GetValue("HttpsRedirection:Enabled", true))
 {
     app.UseHttpsRedirection();
 }

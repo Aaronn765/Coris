@@ -117,7 +117,11 @@ npm run lint
 
 NEXT_PUBLIC_API_URL est une variable publique Next.js : elle ne doit jamais contenir un secret.
 
-## 3. Architecture backend
+## 3. Déploiement sur IIS
+
+La procédure de publication de l’API ASP.NET Core et du frontend Next.js derrière IIS se trouve dans [deploy/iis/README.md](deploy/iis/README.md). Le script [deploy/iis/publish.ps1](deploy/iis/publish.ps1) prépare les deux dossiers publiables.
+
+## 4. Architecture backend
 
 ### Initialisation de l’application
 
@@ -156,7 +160,7 @@ backend/Common/ExceptionHandlingMiddleware.cs convertit les exceptions non trait
 
 Les erreurs de validation automatique de ApiController produisent également un problème HTTP 400, avec le détail des champs dans errors. backend/Common/ApiExceptions.cs contient l’exception applicative dédiée aux validations métier.
 
-## 4. Contrat HTTP de l’API
+## 5. Contrat HTTP de l’API
 
 Tous les chemins ci-dessous sont préfixés par /api. Les propriétés JSON sont en camelCase.
 
@@ -318,7 +322,7 @@ Alias reconnus par le backend :
 - statuts projets : statutprojet, statutsprojet, statuts-projet ;
 - statuts étapes : statutetape, statutsetape, statuts-etape.
 
-## 5. Modèle de données et migrations
+## 6. Modèle de données et migrations
 
 ### Modèle relationnel
 
@@ -404,7 +408,7 @@ dotnet ef database update --project IncidentsDsi.Api.csproj
 
 La factory backend/Data/DesignTimeDbContextFactory.cs permet à dotnet ef de construire le contexte à partir de appsettings.json, appsettings.Development.json et des variables d’environnement.
 
-## 6. Import et export Excel
+## 7. Import et export Excel
 
 ### Import au démarrage
 
@@ -477,7 +481,7 @@ Un domaine ou un responsable absent des référentiels est créé automatiquemen
 
 GET /api/incidents/export construit le classeur en mémoire avec ClosedXML. Il réutilise les filtres et le tri de IncidentService, mais exporte l’ensemble du résultat filtré et ignore page/pageSize. Le contrôleur IncidentsController.cs définit les 22 colonnes, fige la première ligne, ajuste les largeurs et renvoie un nom incidents-yyyyMMddHHmmss.xlsx.
 
-## 7. Architecture frontend
+## 8. Architecture frontend
 
 Le frontend utilise l’App Router Next.js. Toutes les pages fonctionnelles sont des Client Components car elles chargent des données et gèrent des états locaux.
 
@@ -531,7 +535,7 @@ frontend/src/types/index.ts contient les types de données consommés par les co
 - src/lib/utils.ts : fusion des classes CSS avec clsx et tailwind-merge.
 - src/validations/incident.schema.ts : validation Zod du formulaire incident. Il n’existe pas de schéma Zod équivalent pour les projets.
 
-## 8. Carte complète des fichiers
+## 9. Carte complète des fichiers
 
 Les dossiers bin/, obj/, .next/, node_modules/, tests/robot/results/ et les fichiers de build sont des sorties générées et ne sont pas des points d’extension. Les fichiers Excel locaux sont ignorés par Git et servent de données d’import/export ou de fixtures locales.
 
@@ -620,14 +624,12 @@ Les dossiers bin/, obj/, .next/, node_modules/, tests/robot/results/ et les fich
 | frontend/package.json | scripts npm et dépendances |
 | frontend/package-lock.json | verrouillage des versions npm |
 | frontend/tsconfig.json | TypeScript strict, alias @/* vers src/*, mode bundler |
-| frontend/next.config.ts | configuration Next.js ; aucune option custom actuellement |
+| frontend/next.config.ts | configuration Next.js, dont la sortie standalone pour IIS |
 | frontend/eslint.config.mjs | ESLint Next Core Web Vitals + TypeScript et exclusions de build |
 | frontend/postcss.config.mjs | plugin PostCSS Tailwind |
 | frontend/components.json | configuration shadcn, alias et feuille CSS principale |
 | frontend/README.md | documentation frontend historique, moins complète que ce README racine |
 | frontend/.env.example | exemple de NEXT_PUBLIC_API_URL |
-| frontend/AGENTS.md | consignes spécifiques à l’agent Next.js pour ce frontend |
-| frontend/CLAUDE.md | renvoie aux consignes AGENTS.md |
 | frontend/.gitignore | exclusions propres à Next/npm et fichiers d’environnement |
 | frontend/public/logo.png | logo effectivement utilisé par AppLayout via /logo.png |
 | frontend/public/file.svg, globe.svg, next.svg, vercel.svg, window.svg | assets de template, non utilisés par les écrans actuels |
@@ -682,7 +684,7 @@ Les dossiers bin/, obj/, .next/, node_modules/, tests/robot/results/ et les fich
 | tests/robot/ui_smoke.robot | smoke UI dashboard, exports SVG, responsive, liste, formulaire et administration |
 | tests/robot/results/ | rapports générés, ignorés par Git ; ne pas modifier à la main |
 
-## 9. Guide de modification par besoin
+## 10. Guide de modification par besoin
 
 Cette section est la carte d’intervention principale.
 
@@ -714,7 +716,7 @@ Cette section est la carte d’intervention principale.
 | Modifier le schéma SQL ou un index | d’abord Data/AppDbContext.cs, ensuite nouvelle migration dans backend/Migrations/ | dotnet ef migrations list, dotnet test, mise à jour contrôlée de la base |
 | Modifier le contrat HTTP | contrôleur + DTO/service backend, frontend/src/services/api.ts + types, suites xUnit/Robot | conserver les codes 200/201/400/404/409 documentés ci-dessus |
 
-## 10. Tests et validation
+## 11. Tests et validation
 
 ### Tests backend
 
@@ -764,7 +766,7 @@ py -m robot --outputdir tests/robot/results tests/robot
 
 Les suites Robot vérifient notamment les alias de référentiels, le tri alphabétique, les codes HTTP, les validations de dates et longueurs, les numéros/durées, la recherche multi-champs, la pagination, le dashboard, l’export XLSX, CORS, la navigation UI et les exports SVG du dashboard.
 
-## 11. Règles de maintenance
+## 12. Règles de maintenance
 
 1. Pour une règle métier, modifier d’abord le service backend puis aligner le frontend et les tests.
 2. Pour une donnée persistée, modifier AppDbContext/les modèles et générer une migration ; ne pas éditer un fichier *.Designer.cs ou le snapshot à la main.
