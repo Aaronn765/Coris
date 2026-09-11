@@ -398,6 +398,8 @@ Les fichiers *.Designer.cs et AppDbContextModelSnapshot.cs sont générés par E
 
 backend/Migrations/initial.sql est un script SQL historique couvrant le schéma incidents initial et la correction de séquence. Il ne représente pas le schéma actuel complet avec les projets. Pour une base normale, utiliser les migrations EF Core via Database:ApplyMigrations ou les commandes dotnet ef.
 
+Le jeu de données de démonstration actuellement utilisé par l’application est disponible dans [backend/Database/IncidentsDSI-demo-data.sql](backend/Database/IncidentsDSI-demo-data.sql). Sa procédure de restauration est détaillée dans [backend/Database/README.md](backend/Database/README.md).
+
 Commandes EF utiles depuis backend/ :
 
 ~~~powershell
